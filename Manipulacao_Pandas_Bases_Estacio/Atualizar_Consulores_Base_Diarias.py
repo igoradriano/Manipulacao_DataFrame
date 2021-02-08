@@ -4,13 +4,11 @@
 """
 
 import pandas as pd
-#importando Pandas
+import gc #--> Limpar memoria
 from datetime import date, datetime
-#importando biblioteca datetime
 from pytz import timezone
 fuso_horario = timezone('America/Sao_Paulo')
 data_e_hora_Manaus = datetime.today().astimezone(fuso_horario)
-#importando biblioteca pytz
 
 """# 0. INPUTS DO USUÁRIO
 
@@ -92,6 +90,7 @@ for n in range(n_consultores):
 """## 2.2. Importando Base de Dados Geral do SIA"""
 
 lista = ['academicas','financeiras','classificados','te','desistentes']
+df_basegeral= pd.DataFrame()
 i=0
 if tipo_baseGeral == 1:
   df_basegeral = pd.read_excel(f'{date.today().strftime("%d.%m.%Y")}-basegeral.xlsx',sheet_name = 0, skiprows = 0)
@@ -100,41 +99,28 @@ if tipo_baseGeral == 2:
     try:
       if n in ['financeiras','classificados']: #Trata de criar variáveis globais para planilhas que tem 3 abas
         for g in range(3):
-          globals()[f'df_{n}{g}'] = pd.read_excel(f'{datetime.today().astimezone(fuso_horario).strftime("%d.%m.%Y")}-{n}.xlsx',sheet_name = g, skiprows = 0)
+          globals()[f'df_Transporte'] = pd.read_excel(f'{datetime.today().astimezone(fuso_horario).strftime("%d.%m.%Y")}-{n}.xlsx',sheet_name = g, skiprows = 0)
+          df_basegeral = df_basegeral.append(df_Transporte,ignore_index=True)
+          del df_Transporte
+          gc.collect()
           i+=1
-        #if n == "financeiras":
-          #globals()[f'df_Inter{n}'] = pd.concat([df_financeiras0, df_financeiras1,df_financeiras2])
-        #else:
-          #globals()[f'df_Inter{n}'] = pd.concat([df_classificados0, df_classificados1,df_financeiras2])
       else:  #Trata de criar variáveis globais para as planilhas que tem apenas uma aba
-          globals()[f'df_{n}'] = pd.read_excel(f'{datetime.today().astimezone(fuso_horario).strftime("%d.%m.%Y")}-{n}.xlsx',sheet_name = 0, skiprows = 0)
+          globals()[f'df_Transporte'] = pd.read_excel(f'{datetime.today().astimezone(fuso_horario).strftime("%d.%m.%Y")}-{n}.xlsx',sheet_name = 0, skiprows = 0)
+          df_basegeral = df_basegeral.append(df_Transporte,ignore_index=True)
+          del df_Transporte
+          gc.collect()
           i+=1
     except:
-      if n in ['financeiras','classificados']:
         print(f'A base {datetime.today().astimezone(fuso_horario).strftime("%d.%m.%Y")}-{n} não existe!')
-      else:
-         print(f'A base {datetime.today().astimezone(fuso_horario).strftime("%d.%m.%Y")}-{n} não existe!')
     else:
       if n in ['financeiras','classificados']:
         print(f'Todas as 3 Abas da base {datetime.today().astimezone(fuso_horario).strftime("%d.%m.%Y")}-{n} foram registradas com sucesso!')
       else:
          print(f'A base {datetime.today().astimezone(fuso_horario).strftime("%d.%m.%Y")}-{n} foi registrada com sucesso!')
-    df_basegeral = pd.concat([df_academicas,df_classificados0,df_classificados1,df_classificados2,df_financeiras0,df_financeiras1,df_financeiras2,df_te,df_desistentes,df_academicas]) #ATENCAO CONCATENACAO
-print(f'O total de bases registradas foram: {i}')
+  print(f'O total de bases registradas foram: {i}')
 
-"""# CONCATENANDO TABELAS
 
-"""
-
-""""lista2 = [df_Consultor1,df_Consultor2,df_Consultor3,df_Consultor4]
-  df_Consultores = pd.DataFrame()
-  for n in range(n_consultores):
-    try:
-      df_Consultores = df_Consultores.append(lista2[n],ignore_index=True)
-    except:
-      print(f' A base consultor{n+1} exite! Porém estão faltando bases')
-    else:
-      print(f'A base consultor{n+1} foi registrada com sucesso!')"""
+"""# CONCATENANDO TABELAS"""
 
 # Concatenando Tabelas dentro do condicional
 if n_consultores ==1:
@@ -169,9 +155,6 @@ df_Consultores = df_Consultores[['Consultor','MATRICULA','NOME','INSC.INIT','INS
 #Excluindo as colunas que não interessam
 
 """# SUBSTITUINDO NOME DOS CONSULTORES DE TODAS AS LINHAS"""
-
-consulotoresOriginal = ['KARLA CORTEZ RODRIGUES','PEDRO CHAVES DE AZEVEDO JUNIOR','KELY ALBERTO SIMONETE DOS SANTOS MONTEIRO','SKARLATH DA SILVEIRA','IRISMAR PEDROSA DA SILVA','WENDSON BARRETO RESZENDE DA SILVA','Thiago Freire de Araújo']
-consultoresNovo = ['KARLA','PEDRO','ALBERTO','SKARLATH','IRIS','WENDSON','THIAGO']
 
 df_Consultores['Consultor'].replace(
     to_replace=['KARLA CORTEZ RODRIGUES'],
